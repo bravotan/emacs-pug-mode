@@ -4,15 +4,17 @@
 ;; Copyright (c) 2009-2013 Daniel Mendler
 ;; Copyright (c) 2012-2014 Bozhidar Batsov
 ;; Copyright (c) 2016-2017 Henrik Lissner
+;; Copyright (c) 2018 Keisuke URAGO
 ;;
 ;; Author: Nathan Weizenbaum
 ;; Author: Daniel Mendler
 ;; Author: Bozhidar Batsov
 ;; Author: Henrik Lissner
+;; Author: Keisuke URAGO
 ;; Maintainer: Henrik Lissner <henrik@lissner.net>
 ;; Created: February 18, 2016
-;; Modified: December 08, 2017
-;; Version: 1.0.7
+;; Modified: September 12, 2018
+;; Version: 1.0.7+
 ;; Homepage: https://github.com/hlissner/emacs-pug-mode
 ;; Keywords: markup, language, jade, pug
 ;; Package-Requires: ((emacs "24.4") (cl-lib "0.5"))
@@ -68,28 +70,40 @@ the backspaced line be re-indented along with the line itself."
   :type 'integer
   :group 'pug)
 
+(defcustom pug-additional-tags nil
+  "additional tags."
+  :type 'list
+  :group 'pug
+)
+(defconst pug-html-tags
+  '("a" "abbr" "acronym" "address" "applet" "area" "article" "aside"
+    "audio" "b" "base" "basefont" "bdo" "big" "blockquote" "body" "br"
+    "button" "canvas" "caption" "center" "cite" "code" "col" "colgroup"
+    "command" "datalist" "dd" "del" "details" "dialog" "dfn" "dir"
+    "div" "dl" "dt" "em" "embed" "fieldset" "figure" "figcaption" "font" "footer"
+    "form" "frame" "frameset" "h1" "h2" "h3" "h4" "h5" "h6" "head"
+    "header" "hgroup" "hr" "html" "i" "iframe" "img" "input" "ins"
+    "keygen" "kbd" "label" "legend" "li" "link" "map" "main" "mark" "menu"
+    "meta" "meter" "nav" "noframes" "noscript" "object" "ol" "optgroup"
+    "option" "output" "p" "param" "pre" "progress" "q" "rp" "rt" "ruby"
+    "s" "samp" "script" "section" "select" "small" "source" "span"
+    "strike" "strong" "style" "sub" "sup" "table" "tbody" "td"
+    "textarea" "tfoot" "th" "thead" "time" "title" "tr" "tt" "u" "ul"
+    "var" "video" "xmp")
+  "html4/5 tags."
+  )
+
 (defvar pug-indent-function #'pug-indent-p
   "This function should look at the current line and return true if the next
 line could be nested within this line.")
 
 (defconst pug-tags-re
   (concat "\\(?:^\\s-*\\|:\\s-+\\)"
-          (regexp-opt
-           '("a" "abbr" "acronym" "address" "applet" "area" "article" "aside"
-             "audio" "b" "base" "basefont" "bdo" "big" "blockquote" "body" "br"
-             "button" "canvas" "caption" "center" "cite" "code" "col" "colgroup"
-             "command" "datalist" "dd" "del" "details" "dialog" "dfn" "dir"
-             "div" "dl" "dt" "em" "embed" "fieldset" "figure" "figcaption" "font" "footer"
-             "form" "frame" "frameset" "h1" "h2" "h3" "h4" "h5" "h6" "head"
-             "header" "hgroup" "hr" "html" "i" "iframe" "img" "input" "ins"
-             "keygen" "kbd" "label" "legend" "li" "link" "map" "main" "mark" "menu"
-             "meta" "meter" "nav" "noframes" "noscript" "object" "ol" "optgroup"
-             "option" "output" "p" "param" "pre" "progress" "q" "rp" "rt" "ruby"
-             "s" "samp" "script" "section" "select" "small" "source" "span"
-             "strike" "strong" "style" "sub" "sup" "table" "tbody" "td"
-             "textarea" "tfoot" "th" "thead" "time" "title" "tr" "tt" "u" "ul"
-             "var" "video" "xmp") 'words))
-  "Regex of all html4/5 tags.")
+	  (if (boundp 'pug-additional-tags)
+	      (regexp-opt (append pug-html-tags pug-additional-tags) 'words)
+            (regexp-opt pug-html-tags 'words)
+	   ))
+  "Regex of tags.")
 
 (defconst pug-selfclosing-tags-re
   (concat "^ *"
